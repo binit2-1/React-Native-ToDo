@@ -1,15 +1,20 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import './globals.css'
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { PortalHost } from '@rn-primitives/portal';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 
 export default function RootLayout() {
 
   return (
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
+    <SafeAreaProvider>
+      <>
+        <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        </Stack>
+        <PortalHost />
+      </>
+    </SafeAreaProvider>
   );
 }
