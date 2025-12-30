@@ -1,12 +1,21 @@
-import { View, Text } from 'react-native'
-import { SafeAreaProvider } from 'react-native-safe-area-context'
+import React from "react";
+import { View} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Button } from "../../../components/ui/button";
+import { Text } from "../../../components/ui/text";
 
 const Welcome = () => {
   return (
-    <SafeAreaProvider className='flex justify-center items-center bg-black h-screen w-screen'>
-      <Text className='flex justify-center text-white text-center h-screen w-screen bg-black'>Welcome</Text>
-    </SafeAreaProvider>
-  )
-}
+    <SafeAreaView className="flex-1">
+      <View className="flex-1 items-center justify-center bg-black">
+        <Button>
+          <Text className="font-google-sans-flex-9pt-medium">
+            Welcome
+          </Text>
+        </Button>
+      </View>
+    </SafeAreaView>
+  );
+};
 
-export default Welcome
+export default Welcome;

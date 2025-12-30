@@ -2,6 +2,7 @@ import './globals.css'
 import { Stack } from 'expo-router';
 import { PortalHost } from '@rn-primitives/portal';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 import { useFonts } from 'expo-font';
 
 
@@ -56,13 +57,13 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <>
+      <View className='flex-1'>
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(root)" options={{headerShown: false}}/>
         </Stack>
         <PortalHost />
-      </>
+      </View>
     </SafeAreaProvider>
   );
 }
