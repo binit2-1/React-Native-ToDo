@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Feather from "@expo/vector-icons/Feather";
@@ -45,8 +45,24 @@ const TaskModal = ({
 
   return (
     <AnimatePresence>
-    {todoId && isVisible && (    
-        <MotiView
+    {todoId && isVisible && (
+        <>
+          {/* Dark backdrop overlay */}
+          <MotiView
+            from={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: 'timing', duration: 200 }}
+            style={StyleSheet.absoluteFill}
+          >
+            <Pressable 
+              style={styles.backdrop} 
+              onPress={handleClose}
+            />
+          </MotiView>
+          
+          {/* Modal content */}
+          <MotiView
           key={todoId}
           from={{
             opacity: 1,
@@ -158,9 +174,17 @@ const TaskModal = ({
             </View>
           )}
         </MotiView>
+        </>
       )}
     </AnimatePresence>
   );
 };
+
+const styles = StyleSheet.create({
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+  },
+});
 
 export default TaskModal;
