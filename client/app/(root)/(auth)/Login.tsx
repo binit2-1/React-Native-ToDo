@@ -1,11 +1,16 @@
-import { View, Text } from 'react-native'
-import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { SignInForm } from '@/components/sign-in-form';
+import { ScrollView, View } from 'react-native';
 
 const Login = () => {
   return (
-    <SafeAreaProvider>
-      <Text>Login</Text>
-    </SafeAreaProvider>
+    <ScrollView
+      keyboardShouldPersistTaps="handled"
+      contentContainerClassName="bg-background flex-1 items-center justify-center mp-72"
+      keyboardDismissMode="interactive">
+      <View className="w-full max-w-sm">
+        <SignInForm />
+      </View>
+    </ScrollView>
   )
 }
 
