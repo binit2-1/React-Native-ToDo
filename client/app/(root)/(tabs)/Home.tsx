@@ -1,13 +1,14 @@
 import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import React from "react";
+import React, { useState } from "react";
 import DayDate from "@/components/day-date";
 import TodoCapsule from "@/components/todo-capsule";
+import TaskModal from "@/components/task-modal";
 
 const Home = () => {
   const month: string = new Date().toLocaleString("default", { month: "long" });
-
+  const [selectedTodoId, setSelectedTodoId] = useState<string | null>(null);
   return (
     <View className="flex-1 bg-background">
       {/* Fixed header */}
@@ -40,10 +41,11 @@ const Home = () => {
 
       {/* Scrollable content below fixed header */}
       <ScrollView className="flex-1 w-full pt-4 px-2">
-        <TodoCapsule onPress={() => {
-          console.log("Todo capsule pressed");
+        <TodoCapsule onPress={(todoId) => {
+          setSelectedTodoId(todoId);
         }} />
       </ScrollView>
+      {selectedTodoId && <TaskModal todoId={selectedTodoId} onClose={() => setSelectedTodoId(null)} />}
     </View>
   );
 };

@@ -10,7 +10,7 @@ import {
   buttonVariants,
 } from "@/components/ui/button";
 
-const TodoCapsule = ({ onPress }: { onPress: () => void }) => {
+const TodoCapsule = ({ onPress }: { onPress: (todoId: string) => void }) => {
   return (
     <>
       {TODOS.map((todo) => {
@@ -113,7 +113,7 @@ const TodoCapsule = ({ onPress }: { onPress: () => void }) => {
                     </View>
                   </View>
 
-                  <Button onPress={onPress} className="flex h-16 w-16 bg-black rounded-full items-center justify-center">
+                  <Button onPress={() => onPress(todo.id)} className="flex h-16 w-16 bg-black rounded-full items-center justify-center">
                     <Feather  name="arrow-up-right" size={24} color="white" />
                   </Button>
                 </View>
