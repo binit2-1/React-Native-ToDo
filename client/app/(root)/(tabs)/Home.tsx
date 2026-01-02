@@ -39,8 +39,10 @@ const Home = () => {
       </View>
 
       {/* Scrollable content below fixed header */}
-      <ScrollView className="flex-1 w-full pt-2 px-2">
-        <TodoCapsule onPress={() => {}} />
+      <ScrollView className="flex-1 w-full pt-4 px-2">
+        <TodoCapsule onPress={() => {
+          console.log("Todo capsule pressed");
+        }} />
       </ScrollView>
     </View>
   );

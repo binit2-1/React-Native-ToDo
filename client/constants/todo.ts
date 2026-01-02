@@ -136,7 +136,7 @@ export const TODOS: Todo[] = [
         from: '10:00',
         to: '12:00',
         durationMinutes: computeMinutes('10:00', '12:00'),
-        isFinished: true,
+        isFinished: false,
         assignees: [
             'https://i.pravatar.cc/150?img=7',
             'https://i.pravatar.cc/150?img=8',
