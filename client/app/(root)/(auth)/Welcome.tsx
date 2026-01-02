@@ -14,7 +14,7 @@ const Welcome = () => {
 
   return (
     <SafeAreaView className="flex flex-col h-full w-full items-center justify-between bg-background">
-      <Button variant="ghost" size="icon" className="flex pt-4 justify-end pr-4 w-full" onPress={() => router.replace("/Register")}>
+      <Button variant="ghost" size="icon" className="flex pt-4 justify-end pr-4 w-full" onPress={() => router.push("/Register")}>
         <Text className="font-google-sans-flex-9pt-medium text-foreground">Skip</Text>
       </Button>
       <View className="flex flex-1 w-full h-[500px] pt-40">
@@ -48,7 +48,7 @@ const Welcome = () => {
         </Button>
         <Button onPress={() => {
           if(activeIndex === onboarding.length - 1){
-            router.replace("/Register")
+            router.push("/Register")
             return;
           }
           setActiveIndex((prev) => {

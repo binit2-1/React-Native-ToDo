@@ -52,13 +52,12 @@ export default function RootLayout() {
     'GoogleSansFlex_72pt-SemiBold': require('../assets/fonts/GoogleSansFlex_72pt-SemiBold.ttf'),
     'GoogleSansFlex_72pt-Thin': require('../assets/fonts/GoogleSansFlex_72pt-Thin.ttf'),
   });
-
   if (!loaded) return null;
 
   return (
     <SafeAreaProvider>
       <View className='flex-1'>
-        <Stack>
+        <Stack screenOptions={{ gestureEnabled: true }}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(root)" options={{headerShown: false}}/>
         </Stack>
