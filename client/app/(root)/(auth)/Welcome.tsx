@@ -1,11 +1,11 @@
 import React, { useRef, useState } from "react";
 import { View, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Button } from "../../../components/ui/button";
-import { Text } from "../../../components/ui/text";
+import { Button } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
 import { router } from "expo-router";
 import Swiper from 'react-native-swiper';
-import {onboarding} from '../../../constants/index'
+import {onboarding} from '@/constants/index'
 
 const Welcome = () => {
   const swiperRef = useRef<Swiper>(null);

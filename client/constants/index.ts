@@ -1,6 +1,6 @@
-import  remember  from '../assets/images/remember.png'
-import  notification  from '../assets/images/notification.png'
-import  progress  from '../assets/images/progress.png'
+import  remember  from '@/assets/images/remember.png'
+import  notification  from '@/assets/images/notification.png'
+import  progress  from '@/assets/images/progress.png'
 
 export const onboarding = [
     {
