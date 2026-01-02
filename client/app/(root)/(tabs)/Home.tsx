@@ -1,16 +1,16 @@
-import { View, Text } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import React from "react";
-import { ScrollView } from "react-native";
 import DayDate from "@/components/day-date";
+import TodoCapsule from "@/components/todo-capsule";
 
 const Home = () => {
-  const month: string = new Date().toLocaleString('default', { month: 'long' });
-
+  const month: string = new Date().toLocaleString("default", { month: "long" });
 
   return (
-    <ScrollView className="flex h-full w-full bg-background">
+    <View className="flex-1 bg-background">
+      {/* Fixed header */}
       <View className="flex flex-col h-[316px] w-full bg-customPurple rounded-b-[40px] pt-12 px-8">
         {/* Header Section */}
         <View className="flex flex-row justify-between w-full ">
@@ -18,26 +18,31 @@ const Home = () => {
             Hi Binit👋!
           </Text>
           <Avatar alt="Zach Nugent's Avatar">
-            <AvatarImage
-              source={{ uri: "https://github.com/mrzachnugent.png" }}
-            />
+            <AvatarImage source={{ uri: "https://github.com/mrzachnugent.png" }} />
             <AvatarFallback>
               <Text>ZN</Text>
             </AvatarFallback>
           </Avatar>
         </View>
+
         {/* Month Section */}
-        <View className="flex flex-row w-full pt-12">
-          <Text className="font-google-sans-flex-9pt-regular text-3xl text-white">
-              {month}
+        <View className="flex flex-row w-full pt-8">
+          <Text className="font-google-sans-flex-24pt-semibold text-3xl text-white">
+            {month}
           </Text>
         </View>
-        {/*Days and Date*/}
-        <View className="flex w-full">
+
+        {/* Days and Date (fixed) */}
+        <View className="flex w-full pt-12">
           <DayDate />
         </View>
       </View>
-    </ScrollView>
+
+      {/* Scrollable content below fixed header */}
+      <ScrollView className="flex-1 w-full pt-2 px-2">
+        <TodoCapsule onPress={() => {}} />
+      </ScrollView>
+    </View>
   );
 };
 

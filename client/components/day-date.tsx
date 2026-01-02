@@ -4,7 +4,7 @@ import { upcomingDays } from "@/lib/dayDate";
 
 const DayDate = () => {
   return (
-    <View className="flex flex-row w-full justify-between pt-16">
+    <View className="flex flex-row w-full justify-between ">
       {upcomingDays.map((day) => {
         const isToday = !!day.isToday;
         return (
