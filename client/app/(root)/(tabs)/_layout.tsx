@@ -1,12 +1,17 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import { Stack } from "expo-router";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
-const _layout = () => {
+const Layout = () => {
   return (
-    <View>
-      <Text>_layout</Text>
-    </View>
-  )
-}
+    <SafeAreaProvider>
+      <>
+        <Stack>
+          <Stack.Screen name="Home" options={{ headerShown: false }} />
+          <Stack.Screen name="Progress" options={{ headerShown: false }} />
+        </Stack>
+      </>
+    </SafeAreaProvider>
+  );
+};
 
-export default _layout
+export default Layout;

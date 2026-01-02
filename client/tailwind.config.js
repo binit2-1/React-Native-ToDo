@@ -41,6 +41,7 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        customPurple: 'hsl(var(--custom-purple))',
       },
       fontFamily: {
         'google-sans-flex-9pt-black': ['GoogleSansFlex_9pt-Black'],

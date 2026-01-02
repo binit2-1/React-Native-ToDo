@@ -26,6 +26,7 @@ export const THEME = {
     chart3: 'hsl(197 37% 24%)',
     chart4: 'hsl(43 74% 66%)',
     chart5: 'hsl(27 87% 67%)',
+    customPurple:'hsl(243 100% 69%)'
   },
   dark: {
     background: 'hsl(0 0% 3.9%)',
@@ -52,6 +53,7 @@ export const THEME = {
     chart3: 'hsl(30 80% 55%)',
     chart4: 'hsl(280 65% 60%)',
     chart5: 'hsl(340 75% 55%)',
+    customPurple:'hsl(243 100% 69%)'
   },
 };
  
