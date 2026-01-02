@@ -1,15 +1,27 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  ScrollView,
+  Animated,
+  PanResponder,
+  Dimensions,
+} from "react-native";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import Feather from "@expo/vector-icons/Feather";
-import { MotiView, MotiText } from "moti";
 import Octicons from "@expo/vector-icons/Octicons";
 import { useColorScheme } from "nativewind";
 import { THEME } from "@/lib/theme";
-import { AnimatePresence } from "moti";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { TODOS } from "@/constants/todo";
 import { cn } from "@/lib/utils";
+
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const COLLAPSED_HEIGHT = SCREEN_HEIGHT * 0.55;
+const EXPANDED_HEIGHT = SCREEN_HEIGHT * 0.92;
+const DRAG_THRESHOLD = 80;
 
 const TaskModal = ({
   todoId,
@@ -23,80 +35,179 @@ const TaskModal = ({
     THEME[colorScheme === "dark" ? "dark" : "light"].foreground;
 
   const [isVisible, setIsVisible] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const modalHeight = useRef(new Animated.Value(0)).current;
+  const lastGestureDy = useRef(0);
+  const isExpandedRef = useRef(false);
+  const startHeight = useRef(COLLAPSED_HEIGHT);
+
+  // Keep the ref in sync with state
+  useEffect(() => {
+    isExpandedRef.current = isExpanded;
+    startHeight.current = isExpanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT;
+  }, [isExpanded]);
+
+  const handleClose = () => {
+    Animated.spring(modalHeight, {
+      toValue: 0,
+      useNativeDriver: false,
+      damping: 20,
+      stiffness: 90,
+    }).start(() => {
+      setIsVisible(false);
+      setIsExpanded(false);
+      onClose();
+    });
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only respond if there's significant vertical movement
+        return Math.abs(gestureState.dy) > 10;
+      },
+      onPanResponderGrant: () => {
+        // Capture the current height at the start of the gesture
+        startHeight.current = isExpandedRef.current ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT;
+        lastGestureDy.current = 0;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        const newHeight = startHeight.current - gestureState.dy;
+        
+        // Allow dragging below collapsed height for close gesture
+        const clampedHeight = Math.max(0, Math.min(EXPANDED_HEIGHT, newHeight));
+        modalHeight.setValue(clampedHeight);
+        lastGestureDy.current = gestureState.dy;
+      },
+      onPanResponderRelease: () => {
+        const dy = lastGestureDy.current;
+        const expanded = isExpandedRef.current;
+        
+        // Only act if there was significant movement
+        if (Math.abs(dy) < 10) {
+          // It was just a tap, snap back
+          Animated.spring(modalHeight, {
+            toValue: expanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT,
+            useNativeDriver: false,
+            damping: 20,
+            stiffness: 90,
+          }).start();
+        } else if (dy < -DRAG_THRESHOLD && !expanded) {
+          // Dragged up past threshold - expand
+          setIsExpanded(true);
+          Animated.spring(modalHeight, {
+            toValue: EXPANDED_HEIGHT,
+            useNativeDriver: false,
+            damping: 20,
+            stiffness: 90,
+          }).start();
+        } else if (dy > DRAG_THRESHOLD) {
+          // Dragged down past threshold - close
+          Animated.spring(modalHeight, {
+            toValue: 0,
+            useNativeDriver: false,
+            damping: 20,
+            stiffness: 90,
+          }).start(() => {
+            setIsVisible(false);
+            setIsExpanded(false);
+            onClose();
+          });
+        } else {
+          // Snap back to current state
+          Animated.spring(modalHeight, {
+            toValue: expanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT,
+            useNativeDriver: false,
+            damping: 20,
+            stiffness: 90,
+          }).start();
+        }
+        lastGestureDy.current = 0;
+      },
+    })
+  ).current;
 
   useEffect(() => {
     if (todoId) {
       setIsVisible(true);
+      setIsExpanded(false);
+      // Animate modal in
+      Animated.spring(modalHeight, {
+        toValue: COLLAPSED_HEIGHT,
+        useNativeDriver: false,
+        damping: 20,
+        stiffness: 90,
+      }).start();
     }
   }, [todoId]);
-
-  const handleClose = () => {
-    setIsVisible(false);
-    // Call onClose after animation completes
-    setTimeout(() => {
-      onClose();
-    }, 300); // Adjust timing to match your animation duration
-  };
 
   // Find the specific todo that matches todoId
   const todo = TODOS.find((t) => t.id === todoId);
 
   if (!todo) return null;
 
+  // Interpolate backdrop opacity based on modal height
+  const backdropOpacity = modalHeight.interpolate({
+    inputRange: [0, COLLAPSED_HEIGHT],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
   return (
-    <AnimatePresence>
+    <>
     {todoId && isVisible && (
         <>
-          {/* Dark backdrop overlay */}
-          <MotiView
-            from={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ type: 'timing', duration: 200 }}
-            style={StyleSheet.absoluteFill}
+          {/* Dark backdrop overlay - synced with modal height */}
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFill,
+              { opacity: backdropOpacity },
+            ]}
+            pointerEvents={isVisible ? 'auto' : 'none'}
           >
             <Pressable 
               style={styles.backdrop} 
               onPress={handleClose}
             />
-          </MotiView>
+          </Animated.View>
           
           {/* Modal content */}
-          <MotiView
-          key={todoId}
-          from={{
-            opacity: 1,
-            height: 0,
-          }}
-          animate={{
-            opacity: 1,
-            height: 1000,
-          }}
-          exit={{
-            opacity: 1,
-            height: 0,
-          }}
-          transition={{
-            type: "spring",
-            damping: 20,
-            stiffness: 90,
-          }}
-          className="flex bg-foreground h-3/4 w-full rounded-t-[40px] backdrop-filter backdrop-blur-"
-        >
-          <View className="flex flex-row justify-between w-full px-4 pt-4">
-            <Button
-              onPress={handleClose}
-              className="flex h-16 w-16 bg-background rounded-full items-center justify-center"
+          <Animated.View
+            style={[
+              styles.modalContainer,
+              { height: modalHeight },
+            ]}
+          >
+            {/* Drag handle */}
+            <View {...panResponder.panHandlers} style={styles.dragHandleArea}>
+              <View style={styles.dragHandle} />
+            </View>
+
+            {/* Fixed header buttons */}
+            <View className="flex flex-row justify-between w-full px-4 pt-2 pb-4 bg-foreground">
+              <Button
+                onPress={handleClose}
+                className="flex h-16 w-16 bg-background rounded-full items-center justify-center"
+              >
+                <Feather name="chevron-down" size={24} color={foregroundColor} />
+              </Button>
+              <Button
+                onPress={handleClose}
+                className="flex h-16 w-16 bg-background rounded-full items-center justify-center"
+              >
+                <Octicons name="pencil" size={24} color={foregroundColor} />
+              </Button>
+            </View>
+
+            {/* Scrollable content */}
+            <ScrollView
+              className="flex-1 bg-foreground"
+              showsVerticalScrollIndicator={false}
+              scrollEnabled={isExpanded}
+              contentContainerStyle={{ paddingBottom: 40 }}
             >
-              <Feather name="chevron-down" size={24} color={foregroundColor} />
-            </Button>
-            <Button
-              onPress={handleClose}
-              className="flex h-16 w-16 bg-background rounded-full items-center justify-center"
-            >
-              <Octicons name="pencil" size={24} color={foregroundColor} />
-            </Button>
-          </View>
           {/* render the timing for the current todo */}
           {todo.from && todo.to && (
             <View className="flex flex-row justify-center items-center mx-auto my-0 bg-customPurple p-4 rounded-full">
@@ -173,10 +284,11 @@ const TaskModal = ({
               ))}
             </View>
           )}
-        </MotiView>
+            </ScrollView>
+          </Animated.View>
         </>
       )}
-    </AnimatePresence>
+    </>
   );
 };
 
@@ -184,6 +296,28 @@ const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
+  },
+  modalContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fafafa',
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    overflow: 'hidden',
+  },
+  dragHandleArea: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 12,
+    backgroundColor: '#fafafa',
+  },
+  dragHandle: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: '#ccc',
   },
 });
 
