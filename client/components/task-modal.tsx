@@ -17,6 +17,7 @@ import { THEME } from "@/lib/theme";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { TODOS } from "@/constants/todo";
 import { cn } from "@/lib/utils";
+import { Portal } from '@rn-primitives/portal';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const COLLAPSED_HEIGHT = SCREEN_HEIGHT * 0.55;
@@ -219,7 +220,8 @@ const TaskModal = ({
   return (
     <>
       {todoId && isVisible && (
-        <>
+        <Portal name="task-modal-portal">
+          <View style={{ zIndex: 100 }} className="absolute inset-0" pointerEvents="box-none">
           {/* Dark backdrop overlay - synced with modal height */}
           <Animated.View
             style={[StyleSheet.absoluteFill, { opacity: backdropOpacity }]}
@@ -454,7 +456,8 @@ const TaskModal = ({
               {/* Floating action buttons: left = reject, right = accept */}
             </View>
           )}
-        </>
+          </View>
+        </Portal>
       )}
     </>
   );
@@ -474,6 +477,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     overflow: "hidden",
+    zIndex: 50,
   },
   dragHandleArea: {
     width: "100%",

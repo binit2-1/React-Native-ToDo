@@ -1,10 +1,10 @@
 import { View, Text, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import React, { useState } from "react";
 import DayDate from "@/components/day-date";
 import TodoCapsule from "@/components/todo-capsule";
 import TaskModal from "@/components/task-modal";
+import AddTask from "@/components/add-task";
 
 const Home = () => {
   const month: string = new Date().toLocaleString("default", { month: "long" });
@@ -46,6 +46,7 @@ const Home = () => {
         }} />
       </ScrollView>
       {selectedTodoId && <TaskModal todoId={selectedTodoId} onClose={() => setSelectedTodoId(null)} />}
+      <AddTask isTaskModalOpen={!!selectedTodoId} />
     </View>
   );
 };
