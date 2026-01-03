@@ -19,7 +19,7 @@ const Home = () => {
             Hi Binit👋!
           </Text>
           <Avatar alt="Zach Nugent's Avatar">
-            <AvatarImage source={{ uri: "https://github.com/mrzachnugent.png" }} />
+            <AvatarImage source={{ uri: "https://cdn.jsdelivr.net/gh/alohe/avatars/png/vibrent_1.png" }} />
             <AvatarFallback>
               <Text>ZN</Text>
             </AvatarFallback>

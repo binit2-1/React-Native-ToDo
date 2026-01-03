@@ -4,7 +4,7 @@
     "slug": "app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "https://cdn.jsdelivr.net/gh/alohe/avatars/png/toon_1.png",
     "scheme": "app",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,16 +14,16 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "https://cdn.jsdelivr.net/gh/alohe/avatars/png/toon_1.png",
+        "backgroundImage": "https://cdn.jsdelivr.net/gh/alohe/avatars/png/toon_1.png",
+        "monochromeImage": "https://cdn.jsdelivr.net/gh/alohe/avatars/png/toon_1.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png",
+      "favicon": "https://cdn.jsdelivr.net/gh/alohe/avatars/png/toon_1.png",
       "bundler": "metro"
     },
     "plugins": [
