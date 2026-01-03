@@ -4,12 +4,15 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { MotiPressable } from "moti/interactions";
 import { AnimatePresence, MotiView } from "moti";
 import { Portal } from '@rn-primitives/portal';
+import AddTaskForm from "./add-task-form";
+import type { Todo } from "@/constants/todo";
 
 interface AddTaskProps {
   isTaskModalOpen?: boolean;
+  onTaskCreated?: (todo: Omit<Todo, 'assignees'>) => void;
 }
 
-const AddTask = ({ isTaskModalOpen = false }: AddTaskProps) => {
+const AddTask = ({ isTaskModalOpen = false, onTaskCreated }: AddTaskProps) => {
   const [rotate, setRotate] = useState<boolean>(false);
 
   // Close add-task modal when task modal opens
@@ -18,6 +21,16 @@ const AddTask = ({ isTaskModalOpen = false }: AddTaskProps) => {
       setRotate(false);
     }
   }, [isTaskModalOpen]);
+
+  const handleSubmit = (todo: Omit<Todo, 'assignees'>) => {
+    console.log("New task created:", todo);
+    onTaskCreated?.(todo);
+    setRotate(false);
+  };
+
+  const handleCancel = () => {
+    setRotate(false);
+  };
 
   return (
     <>
@@ -65,7 +78,7 @@ const AddTask = ({ isTaskModalOpen = false }: AddTaskProps) => {
                 className="absolute inset-0 bg-black/80"
                 style={{ zIndex: 40 }}
               >
-                <Pressable className="absolute inset-0" onPress={() => setRotate(false)} />
+                <Pressable className="absolute inset-0" onPress={handleCancel} />
               </MotiView>
 
               {/* Modal (animated) - z-45 so it's below task-modal (z-50) */}
@@ -76,13 +89,10 @@ const AddTask = ({ isTaskModalOpen = false }: AddTaskProps) => {
                 exit={{ opacity: 0, scale: 0.92 }}
                 transition={{ type: "timing", duration: 200 }}
                 exitTransition={{ type: "timing", duration: 150 }}
-                className="absolute bottom-[150px] left-3 bg-white h-3/4 w-[90%] mx-2 p-16 rounded-[44px] shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)]"
-                style={{ zIndex: 45 }}
+                className="absolute bottom-[120px] left-4 right-4 bg-white rounded-[44px] p-6"
+                style={{ zIndex: 45, maxHeight: "75%" }}
               >
-                <Text className="font-google-sans-flex-16pt-medium text-black">
-                  Add Task Modal
-                </Text>
-                {/* Additional modal content can go here */}
+                <AddTaskForm onSubmit={handleSubmit} onCancel={handleCancel} />
               </MotiView>
             </>
           )}
