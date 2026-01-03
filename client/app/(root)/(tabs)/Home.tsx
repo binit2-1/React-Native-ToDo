@@ -5,11 +5,13 @@ import DayDate from "@/components/day-date";
 import TodoCapsule from "@/components/todo-capsule";
 import TaskModal from "@/components/task-modal";
 import AddTask from "@/components/add-task";
+import { TodoProvider } from "@/context/TodoContext";
 
 const Home = () => {
   const month: string = new Date().toLocaleString("default", { month: "long" });
   const [selectedTodoId, setSelectedTodoId] = useState<string | null>(null);
   return (
+    <TodoProvider>
     <View className="flex-1 bg-background">
       {/* Fixed header */}
       <View className="flex flex-col h-[316px] w-full bg-customPurple rounded-b-[40px] pt-12 px-8">
@@ -48,6 +50,7 @@ const Home = () => {
       {selectedTodoId && <TaskModal todoId={selectedTodoId} onClose={() => setSelectedTodoId(null)} />}
       <AddTask isTaskModalOpen={!!selectedTodoId} />
     </View>
+    </TodoProvider>
   );
 };
 

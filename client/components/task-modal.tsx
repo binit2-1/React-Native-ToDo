@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { TODOS } from "@/constants/todo";
 import { cn } from "@/lib/utils";
 import { Portal } from '@rn-primitives/portal';
+import { useTodoContext } from "@/context/TodoContext";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const COLLAPSED_HEIGHT = SCREEN_HEIGHT * 0.55;
@@ -37,8 +38,10 @@ const TaskModal = ({
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
-  // track completed plans per todo: '{todoId}:{planId}' -> boolean
-  const [completedPlans, setCompletedPlans] = useState<Record<string, boolean>>({});
+  
+  // Use the shared context for completed plans
+  const { isPlanCompleted, markPlanCompleted: ctxMarkPlanCompleted, markPlanUncompleted: ctxMarkPlanUncompleted } = useTodoContext();
+  
   const isMountedRef = useRef(true);
   useEffect(() => {
     isMountedRef.current = true;
@@ -53,18 +56,12 @@ const TaskModal = ({
 
   const markPlanCompleted = (planId: string) => {
     if (!isMountedRef.current) return;
-    const key = `${todoId}:${planId}`;
-    setCompletedPlans((prev) => ({ ...prev, [key]: true }));
+    ctxMarkPlanCompleted(todoId, planId);
   };
 
   const markPlanUncompleted = (planId: string) => {
     if (!isMountedRef.current) return;
-    const key = `${todoId}:${planId}`;
-    setCompletedPlans((prev) => {
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
+    ctxMarkPlanUncompleted(todoId, planId);
   };
 
   // realtime clock to allow live overdue tracking
@@ -332,8 +329,7 @@ const TaskModal = ({
                     Plans
                   </Text>
                   {todo.plans.map((plan, index) => {
-                    const planKey = `${todo.id}:${plan.id}`;
-                    const completed = !!completedPlans[planKey];
+                    const completed = isPlanCompleted(todoId, plan.id);
                     const overdue = !completed && isPlanOverdue(plan, now);
                     return (
                       <Pressable
@@ -415,8 +411,7 @@ const TaskModal = ({
                   </Pressable>
 
                   {(() => {
-                    const selKey = selectedPlan ? `${todoId}:${selectedPlan.id}` : null;
-                    const selCompleted = selKey ? !!completedPlans[selKey] : false;
+                    const selCompleted = selectedPlan ? isPlanCompleted(todoId, selectedPlan.id) : false;
                     if (selCompleted) {
                       return (
                         <Pressable

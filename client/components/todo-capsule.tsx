@@ -9,12 +9,18 @@ import {
   buttonTextVariants,
   buttonVariants,
 } from "@/components/ui/button";
+import { useTodoContext } from "@/context/TodoContext";
 
 const TodoCapsule = ({ onPress }: { onPress: (todoId: string) => void }) => {
+  const { isTodoAutoCompleted, getCompletionProgress } = useTodoContext();
+
   return (
     <>
       {TODOS.map((todo) => {
-        const isFinished = todo.isFinished;
+        // A todo is finished if marked as finished OR all plans are completed
+        const autoCompleted = isTodoAutoCompleted(todo.id);
+        const isFinished = todo.isFinished || autoCompleted;
+        const progress = getCompletionProgress(todo.id);
 
         return (
           <View
@@ -25,8 +31,11 @@ const TodoCapsule = ({ onPress }: { onPress: (todoId: string) => void }) => {
             )}
           >
             {isFinished ? (
-              // Finished task - simple layout
-              <View className="flex flex-row justify-between items-center h-full px-2">
+              // Finished task - simple layout (still clickable to edit/undo)
+              <View 
+                className="flex flex-row justify-between items-center h-full px-2"
+                onTouchEnd={() => onPress(todo.id)}
+              >
                 <View className="flex flex-col flex-1">
                   <Text className="font-google-sans-flex-24pt-semibold text-lg text-black">
                     {todo.title}
@@ -34,6 +43,11 @@ const TodoCapsule = ({ onPress }: { onPress: (todoId: string) => void }) => {
                   <Text className="font-google-sans-flex-9pt-medium text-black mt-0.5">
                     {todo.description}
                   </Text>
+                  {autoCompleted && (
+                    <Text className="font-google-sans-flex-9pt-regular text-xs text-gray-700 mt-1">
+                      {progress.completed}/{progress.total} plans completed • Tap to edit
+                    </Text>
+                  )}
                 </View>
                 <View className="flex h-16 w-16 bg-black rounded-full items-center justify-center ml-4">
                   <MaterialIcons name="check" size={24} color="white" />
@@ -111,6 +125,14 @@ const TodoCapsule = ({ onPress }: { onPress: (todoId: string) => void }) => {
                         {formatDuration(todo.durationMinutes)}
                       </Text>
                     </View>
+                    {/* Show progress if any plans are completed */}
+                    {progress.total > 0 && progress.completed > 0 && (
+                      <View className="bg-customPurple p-4 rounded-3xl">
+                        <Text className="font-google-sans-flex-9pt-regular text-md text-center text-white">
+                          {progress.completed}/{progress.total}
+                        </Text>
+                      </View>
+                    )}
                   </View>
 
                   <Button onPress={() => onPress(todo.id)} className="flex h-16 w-16 bg-black rounded-full items-center justify-center">
