@@ -33,12 +33,11 @@ const TaskModal = ({
   const { colorScheme } = useColorScheme();
   const foregroundColor =
     THEME[colorScheme === "dark" ? "dark" : "light"].foreground;
-
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
-  // Selected plan for the plan-details popup modal
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
-  // track mount state to avoid state updates after unmount
+  // track completed plans per todo: '{todoId}:{planId}' -> boolean
+  const [completedPlans, setCompletedPlans] = useState<Record<string, boolean>>({});
   const isMountedRef = useRef(true);
   useEffect(() => {
     isMountedRef.current = true;
@@ -49,6 +48,52 @@ const TaskModal = ({
 
   const safeSetSelectedPlan = (p: any) => {
     if (isMountedRef.current) setSelectedPlan(p);
+  };
+
+  const markPlanCompleted = (planId: string) => {
+    if (!isMountedRef.current) return;
+    const key = `${todoId}:${planId}`;
+    setCompletedPlans((prev) => ({ ...prev, [key]: true }));
+  };
+
+  const markPlanUncompleted = (planId: string) => {
+    if (!isMountedRef.current) return;
+    const key = `${todoId}:${planId}`;
+    setCompletedPlans((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  // realtime clock to allow live overdue tracking
+  const [now, setNow] = useState<number>(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30 * 1000); // update every 30s
+    return () => clearInterval(id);
+  }, []);
+
+  const isPlanOverdue = (plan: any, nowTs: number) => {
+    try {
+      const nowDate = new Date(nowTs);
+      const [fh, fm] = plan.from.split(":").map(Number);
+      const [th, tm] = plan.to.split(":").map(Number);
+
+      const fromDate = new Date(nowDate);
+      fromDate.setHours(fh, fm, 0, 0);
+
+      const toDate = new Date(nowDate);
+      toDate.setHours(th, tm, 0, 0);
+
+      // if to is earlier or equal to from, it means it rolls over to next day
+      if (toDate.getTime() <= fromDate.getTime()) {
+        toDate.setDate(toDate.getDate() + 1);
+      }
+
+      return nowDate.getTime() > toDate.getTime();
+    } catch (e) {
+      return false;
+    }
   };
 
   const modalHeight = useRef(new Animated.Value(0)).current;
@@ -284,22 +329,44 @@ const TaskModal = ({
                   <Text className="text-5xl font-google-sans-flex-24pt-bold text-center text-background">
                     Plans
                   </Text>
-                  {todo.plans.map((plan, index) => (
-                    <Pressable
-                      key={`${todo.id}-plan-${index}`}
-                      onPress={() => safeSetSelectedPlan(plan)}
-                      className="flex flex-col justify-center items-center px-4 pt-4"
-                    >
-                      <View className="flex flex-row justify-between items-center bg-neutral-200 w-full px-6 py-8 rounded-[40px]">
-                        <Text className="text-xl font-google-sans-flex-24pt-semibold text-center text-background ">
-                          {plan.title}
-                        </Text>
-                        <Text className="text-xl font-google-sans-flex-24pt-semibold text-center text-background">
-                          {plan.from} - {plan.to}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  ))}
+                  {todo.plans.map((plan, index) => {
+                    const planKey = `${todo.id}:${plan.id}`;
+                    const completed = !!completedPlans[planKey];
+                    const overdue = !completed && isPlanOverdue(plan, now);
+                    return (
+                      <Pressable
+                        key={`${todo.id}-plan-${index}`}
+                        onPress={() => safeSetSelectedPlan(plan)}
+                        className={cn(
+                          "flex flex-col justify-center items-center px-4 pt-4",
+                          completed && "opacity-40"
+                        )}
+                      >
+                        <View
+                          className={cn(
+                            "flex flex-row justify-between items-center w-full px-6 py-8 rounded-[40px]",
+                            overdue ? "bg-red-200" : "bg-neutral-200"
+                          )}
+                        >
+                          <Text
+                            className={cn(
+                              "text-xl font-google-sans-flex-24pt-semibold text-center",
+                              overdue ? "text-red-800" : "text-background",
+                              completed && "line-through"
+                            )}
+                          >
+                            {plan.title}
+                          </Text>
+                          <Text className={cn(
+                            "text-xl font-google-sans-flex-24pt-semibold text-center",
+                            overdue ? "text-red-800" : "text-background"
+                          )}>
+                            {plan.from} - {plan.to}
+                          </Text>
+                        </View>
+                      </Pressable>
+                    );
+                  })}
                 </View>
               )}
             </ScrollView>
@@ -345,11 +412,42 @@ const TaskModal = ({
                     </View>
                   </Pressable>
 
-                  <Pressable onPress={() => safeSetSelectedPlan(null)}>
-                    <View className="h-16 w-16 rounded-full items-center justify-center bg-green-500">
-                      <Feather name="check" size={24} color="#fff" />
-                    </View>
-                  </Pressable>
+                  {(() => {
+                    const selKey = selectedPlan ? `${todoId}:${selectedPlan.id}` : null;
+                    const selCompleted = selKey ? !!completedPlans[selKey] : false;
+                    if (selCompleted) {
+                      return (
+                        <Pressable
+                          onPress={() => {
+                            if (selectedPlan && selectedPlan.id) {
+                              markPlanUncompleted(selectedPlan.id);
+                            }
+                            safeSetSelectedPlan(null);
+                          }}
+                        >
+                          <View className="h-16 w-16 rounded-full items-center justify-center bg-black">
+                            <Feather name="rotate-ccw" size={24} color="#fff" />
+                          </View>
+                        </Pressable>
+                      );
+                    }
+
+                    return (
+                      <Pressable
+                        onPress={() => {
+                          // mark only the selected plan completed for this todo
+                          if (selectedPlan && selectedPlan.id) {
+                            markPlanCompleted(selectedPlan.id);
+                          }
+                          safeSetSelectedPlan(null);
+                        }}
+                      >
+                        <View className="h-16 w-16 rounded-full items-center justify-center bg-green-500">
+                          <Feather name="check" size={24} color="#fff" />
+                        </View>
+                      </Pressable>
+                    );
+                  })()}
                 </View>
               </View>
 
