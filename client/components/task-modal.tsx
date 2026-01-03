@@ -34,8 +34,22 @@ const TaskModal = ({
   const foregroundColor =
     THEME[colorScheme === "dark" ? "dark" : "light"].foreground;
 
-  const [isVisible, setIsVisible] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  // Selected plan for the plan-details popup modal
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  // track mount state to avoid state updates after unmount
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const safeSetSelectedPlan = (p: any) => {
+    if (isMountedRef.current) setSelectedPlan(p);
+  };
 
   const modalHeight = useRef(new Animated.Value(0)).current;
   const lastGestureDy = useRef(0);
@@ -70,12 +84,14 @@ const TaskModal = ({
       },
       onPanResponderGrant: () => {
         // Capture the current height at the start of the gesture
-        startHeight.current = isExpandedRef.current ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT;
+        startHeight.current = isExpandedRef.current
+          ? EXPANDED_HEIGHT
+          : COLLAPSED_HEIGHT;
         lastGestureDy.current = 0;
       },
       onPanResponderMove: (_, gestureState) => {
         const newHeight = startHeight.current - gestureState.dy;
-        
+
         // Allow dragging below collapsed height for close gesture
         const clampedHeight = Math.max(0, Math.min(EXPANDED_HEIGHT, newHeight));
         modalHeight.setValue(clampedHeight);
@@ -84,7 +100,7 @@ const TaskModal = ({
       onPanResponderRelease: () => {
         const dy = lastGestureDy.current;
         const expanded = isExpandedRef.current;
-        
+
         // Only act if there was significant movement
         if (Math.abs(dy) < 10) {
           // It was just a tap, snap back
@@ -152,33 +168,24 @@ const TaskModal = ({
   const backdropOpacity = modalHeight.interpolate({
     inputRange: [0, COLLAPSED_HEIGHT],
     outputRange: [0, 1],
-    extrapolate: 'clamp',
+    extrapolate: "clamp",
   });
 
   return (
     <>
-    {todoId && isVisible && (
+      {todoId && isVisible && (
         <>
           {/* Dark backdrop overlay - synced with modal height */}
           <Animated.View
-            style={[
-              StyleSheet.absoluteFill,
-              { opacity: backdropOpacity },
-            ]}
-            pointerEvents={isVisible ? 'auto' : 'none'}
+            style={[StyleSheet.absoluteFill, { opacity: backdropOpacity }]}
+            pointerEvents={isVisible ? "auto" : "none"}
           >
-            <Pressable 
-              style={styles.backdrop} 
-              onPress={handleClose}
-            />
+            <Pressable style={styles.backdrop} onPress={handleClose} />
           </Animated.View>
-          
+
           {/* Modal content */}
           <Animated.View
-            style={[
-              styles.modalContainer,
-              { height: modalHeight },
-            ]}
+            style={[styles.modalContainer, { height: modalHeight }]}
           >
             {/* Drag handle */}
             <View {...panResponder.panHandlers} style={styles.dragHandleArea}>
@@ -191,7 +198,11 @@ const TaskModal = ({
                 onPress={handleClose}
                 className="flex h-16 w-16 bg-background rounded-full items-center justify-center"
               >
-                <Feather name="chevron-down" size={24} color={foregroundColor} />
+                <Feather
+                  name="chevron-down"
+                  size={24}
+                  color={foregroundColor}
+                />
               </Button>
               <Button
                 onPress={handleClose}
@@ -208,84 +219,143 @@ const TaskModal = ({
               scrollEnabled={isExpanded}
               contentContainerStyle={{ paddingBottom: 40 }}
             >
-          {/* render the timing for the current todo */}
-          {todo.from && todo.to && (
-            <View className="flex flex-row justify-center items-center mx-auto my-0 bg-customPurple p-4 rounded-full">
-              <Text className="text-lg font-google-sans-flex-24pt-semibold text-center text-foreground">
-                {todo.from} - {todo.to}
-              </Text>
-            </View>
-          )}
-          {/* render the title and description for the current todo */}
-          {todo.title && todo.description && (
-            <View className="flex flex-col justify-center items-center px-4 pt-4">
-              <Text className="text-2xl font-google-sans-flex-24pt-semibold text-center text-background">
-                {todo.title}
-              </Text>
-              <Text className="text-sm font-google-sans-flex-9pt-regular text-center text-background mt-4">
-                {todo.description}
-              </Text>
-            </View>
-          )}
-
-          {/* render assignees for the current todo */}
-          {todo.assignees && todo.assignees.length > 0 && (
-            <View className="flex flex-row justify-center items-center px-4 pt-4">
-              {todo.assignees.slice(0, 3).map((assignee, index) => (
-                <View
-                  key={`${todo.id}-assignee-${index}`}
-                  className={cn(
-                    "rounded-full border-4 border-white",
-                    index > 0 && "-ml-6"
-                  )}
-                  style={{ zIndex: todo.assignees!.length - index }}
-                >
-                  <Avatar className="h-16 w-16" alt={`Assignee ${index + 1}`}>
-                    <AvatarImage source={{ uri: assignee }} />
-                    <AvatarFallback>
-                      <Text className="text-xs">U</Text>
-                    </AvatarFallback>
-                  </Avatar>
-                </View>
-              ))}
-              {todo.assignees.length > 3 && (
-                <View
-                  key={`${todo.id}-assignee-count`}
-                  className={cn(
-                    "rounded-full border-4 border-white bg-customPurple items-center justify-center -ml-6",
-                    "h-16 w-16"
-                  )}
-                  style={{ zIndex: 0 }}
-                >
-                  <Text className="text-white text-xs font-google-sans-flex-9pt-semibold">
-                    +{todo.assignees.length - 3}
+              {/* render the timing for the current todo */}
+              {todo.from && todo.to && (
+                <View className="flex flex-row justify-center items-center mx-auto my-0 bg-customPurple p-4 rounded-full">
+                  <Text className="text-lg font-google-sans-flex-24pt-semibold text-center text-foreground">
+                    {todo.from} - {todo.to}
                   </Text>
                 </View>
               )}
-            </View>
-          )}
-          {/* render the plans for the current todo */}
-          {todo.plans && todo.plans.length > 0 && (
-            <View className="flex flex-col justify-center items-center px-4 pt-4">
-              <Text className="text-5xl font-google-sans-flex-24pt-bold text-center text-background">
-                Plans
-              </Text>
-              {todo.plans.map((plan, index) => (
-                <View key={`${todo.id}-plan-${index}`} className="flex flex-col justify-center items-center px-4 pt-4">
-                  <View className="flex flex-row justify-between items-center bg-neutral-200 w-full px-6 py-8 rounded-[40px]">
-                    <Text className="text-xl font-google-sans-flex-24pt-semibold text-center text-background ">
-                        {plan.title}
-                    </Text>
-                    <Text className="text-xl font-google-sans-flex-24pt-semibold text-center text-background">
-                      {plan.from} - {plan.to}
-                    </Text>
-                  </View>
+              {/* render the title and description for the current todo */}
+              {todo.title && todo.description && (
+                <View className="flex flex-col justify-center items-center px-4 pt-4">
+                  <Text className="text-2xl font-google-sans-flex-24pt-semibold text-center text-background">
+                    {todo.title}
+                  </Text>
+                  <Text className="text-sm font-google-sans-flex-9pt-regular text-center text-background mt-4">
+                    {todo.description}
+                  </Text>
                 </View>
-              ))}
-            </View>
-          )}
+              )}
+
+              {/* render assignees for the current todo */}
+              {todo.assignees && todo.assignees.length > 0 && (
+                <View className="flex flex-row justify-center items-center px-4 pt-4">
+                  {todo.assignees.slice(0, 3).map((assignee, index) => (
+                    <View
+                      key={`${todo.id}-assignee-${index}`}
+                      className={cn(
+                        "rounded-full border-4 border-white",
+                        index > 0 && "-ml-6"
+                      )}
+                      style={{ zIndex: todo.assignees!.length - index }}
+                    >
+                      <Avatar
+                        className="h-16 w-16"
+                        alt={`Assignee ${index + 1}`}
+                      >
+                        <AvatarImage source={{ uri: assignee }} />
+                        <AvatarFallback>
+                          <Text className="text-xs">U</Text>
+                        </AvatarFallback>
+                      </Avatar>
+                    </View>
+                  ))}
+                  {todo.assignees.length > 3 && (
+                    <View
+                      key={`${todo.id}-assignee-count`}
+                      className={cn(
+                        "rounded-full border-4 border-white bg-customPurple items-center justify-center -ml-6",
+                        "h-16 w-16"
+                      )}
+                      style={{ zIndex: 0 }}
+                    >
+                      <Text className="text-white text-xs font-google-sans-flex-9pt-semibold">
+                        +{todo.assignees.length - 3}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
+              {/* render the plans for the current todo */}
+              {todo.plans && todo.plans.length > 0 && (
+                <View className="flex flex-col justify-center items-center px-4 pt-4">
+                  <Text className="text-5xl font-google-sans-flex-24pt-bold text-center text-background">
+                    Plans
+                  </Text>
+                  {todo.plans.map((plan, index) => (
+                    <Pressable
+                      key={`${todo.id}-plan-${index}`}
+                      onPress={() => safeSetSelectedPlan(plan)}
+                      className="flex flex-col justify-center items-center px-4 pt-4"
+                    >
+                      <View className="flex flex-row justify-between items-center bg-neutral-200 w-full px-6 py-8 rounded-[40px]">
+                        <Text className="text-xl font-google-sans-flex-24pt-semibold text-center text-background ">
+                          {plan.title}
+                        </Text>
+                        <Text className="text-xl font-google-sans-flex-24pt-semibold text-center text-background">
+                          {plan.from} - {plan.to}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
             </ScrollView>
           </Animated.View>
+          {/*
+            Plan details modal - customize this block to change the popup's
+            appearance and behavior (notes layout, buttons, animations, etc.).
+            The backdrop darkens the background; floating circular buttons on
+            either side let you accept (green) or reject (red) the plan.
+          */}
+          {selectedPlan && (
+            <View className="absolute inset-0 z-50">
+              <Pressable
+                className="absolute inset-0 bg-black/60"
+                onPress={() => safeSetSelectedPlan(null)}
+              />
+
+              <View className="absolute left-6 right-6 top-1/3 bg-white rounded-[44px] p-5 items-center shadow-lg">
+                {/* Title (fixed) */}
+                <Text className="text-xl font-google-sans-flex-24pt-bold mb-3">
+                  {selectedPlan.title}
+                </Text>
+
+                {/* Notes area: scrollable when content overflows. The maxHeight
+                    uses SCREEN_HEIGHT so the notes won't grow under the buttons.
+                 */}
+                <ScrollView
+                  className="w-full"
+                  style={{ maxHeight: SCREEN_HEIGHT * 0.35 }}
+                  contentContainerStyle={{ paddingBottom: 8 }}
+                  showsVerticalScrollIndicator
+                >
+                  <Text className="text-sm text-center text-neutral-800">
+                    {selectedPlan.notes ?? "No notes available for this plan."}
+                  </Text>
+                </ScrollView>
+
+                {/* Buttons (fixed inside the modal) */}
+                <View className="w-full flex-row items-center justify-between mt-4">
+                  <Pressable onPress={() => safeSetSelectedPlan(null)}>
+                    <View className="h-16 w-16 rounded-full items-center justify-center bg-red-500">
+                      <Feather name="x" size={24} color="#fff" />
+                    </View>
+                  </Pressable>
+
+                  <Pressable onPress={() => safeSetSelectedPlan(null)}>
+                    <View className="h-16 w-16 rounded-full items-center justify-center bg-green-500">
+                      <Feather name="check" size={24} color="#fff" />
+                    </View>
+                  </Pressable>
+                </View>
+              </View>
+
+              {/* Floating action buttons: left = reject, right = accept */}
+            </View>
+          )}
         </>
       )}
     </>
@@ -295,29 +365,29 @@ const TaskModal = ({
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
   },
   modalContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#fafafa',
+    backgroundColor: "#fafafa",
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   dragHandleArea: {
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
     paddingVertical: 12,
-    backgroundColor: '#fafafa',
+    backgroundColor: "#fafafa",
   },
   dragHandle: {
     width: 40,
     height: 5,
     borderRadius: 3,
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
   },
 });
 
